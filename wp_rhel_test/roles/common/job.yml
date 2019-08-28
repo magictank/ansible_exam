@@ -1,0 +1,19 @@
+---
+## 1. 파이썬 selinux 라이브러리 설치
+## yum 모듈을 이용하여 다음 패키지를 설치하세요
+## libselinux-python , policycoreutils-python
+
+## 2. selinux 비활성화
+## selinux모듈을 이용하여 permissive로 변경하세요
+## registry 변수를 생성하세요
+
+## 3. block을 사용하여 시스템을 재시작하세요
+
+## 3-1. block 절 첫번째 작업은 shell 모듈로 재부팅을 합니다.
+## async 1 값과 poll 0 값을 사용하세요
+
+## 3-2. block 절 두번째 작업은 wait_for 모듈로 기다리는 작업입니다.
+## local_action으로 작업하며 delay 30 , timeout 600 값으로 설정합니다.
+
+## 4. 방화벽 활성화 
+## service 모듈을 이용하여 firewalld 서비스를 활성화 합니다.

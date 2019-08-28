@@ -1,0 +1,77 @@
+## 1. default 변수에 다음을 지정하세요
+## wordpress_version: "4.8.2"
+## wordpress_src_url: "https://ko.wordpress.org/wordpress-{{ wordpress_version }}-ko_KR.tar.gz"
+## wordpress_document_root: /srv
+## wordpress_home: "{{ wordpress_document_root }}/wordpress"
+## wordpress_port: 80
+## wordpress_server_name: _
+## wordpress_user: wordpress
+## wordpress_group: wordpress
+## wordpress_db_name: wordpress
+## wordpress_db_host: localhost
+## wordpress_db_user_name: wordpress
+## wordpress_db_user_password:
+## wordpress_nginx_user: nginx
+## wordpress_nginx_group: nginx
+## wordpress_nginx_config_dir: /etc/nginx/conf.d
+## wordpress_php_fpm_config_dir: /etc/php-fpm.d
+## wordpress_php_fpm_socket_path: /var/run/php-fpm/wordpress.sock
+
+## 2. service 모듈로 firealld를 재시작하는 handler를 작성하세요
+
+## 3. tasks 에 다음 작업을 작성하세요
+
+## 3-1 group 모듈로 워드프레스 그룹을 작성하세요
+## wordpress_group 변수를 사용하세요
+
+## 3-2 user 모듈로 워드프레스 사용자를 작성하세요
+## wordpress_user, wordpress_home,  wordpress_group 변수를 사용하세요
+## 시스템 사용자로 생성합니다.
+
+## 3-3 unarchive 모듈을 사용하여 소스 파일을 다운받아 압축해제 하세요
+## 다음 argument를 사용하세요
+## src, dest, remote_src, owner, group
+## 다음 변수들을 사용하세요
+## wordpress_src_url, wordpress_document_root , wordpress_user, wordpress_group
+
+## 3-4 block, rescue, always 를 사용하여 다음작업을 수행하세요
+
+## block: 인증키를 검색합니다.
+## command 모듈로 다음을 실행합니다.
+## cat {{ wordpress_home }}/unique_keys
+## 항상 changed 는 보고하지 않도록 하고 run_once 옵션을 사용합니다.
+## delegate_to 를 ansible_play_hosts[0] 변수로 사용합니다.
+## registry 변수를 생성합니다. "cat_unique_keys"
+
+## rescue: 인증키를 새로 생성합니다.
+## uri 모듈을 사용하여 웹에서 content를 받아옵니다.
+## url: https://api.wordpress.org/secret-key/1.1/salt/
+## run_once 옵션을 사용하고 registry 변수에 내용을 저장합니다.
+
+## always: 키를 이용하여 wordpress를 구성하고 나머지 작업을 수행합니다.
+## set_fact 모듈을 사용하여 wordpress_unique_keys 변수를 다음과 같이 생성합니다.
+## {{ (get_unique_keys.content if cat_unique_keys|failed else cat_unique_keys.stdout)|trim }}
+
+## copy 모듈을 사용하여 wordpress_unique_keys 변수의 content를 {{ wordpress_home }}/unique_keys에  저장합니다.
+
+## template 모듈을 사용하여 wp-config.j2.php 파일을 복사합니다.
+## destination은 {{ wordpress_home }}/wp-config.php
+## owner 와 group을 각각 wordpress_user와 wordpress_group로 구성합니다
+
+## template 모듈을 사용하여 wordpress.fpm.j2.conf 파일을 복사합니다.
+## destination은 {{ wordpress_php_fpm_config_dir }}/wordpress.conf
+## notify 를 사용하여 php-fpm 서비스를 재시작하는 handler를 호출합니다.
+
+## command 모듈을 사용하여 php-fpm -t 명령어를 수행합니다.
+## 항상 changed는 보고 하지 않습니다.
+
+## template 모듈을 사용하여 nginx 설정파일 wordpress.nginx.j2.conf 를 복사합니다.
+## destination 은 "{{ wordpress_nginx_config_dir }}/wordpress.conf" 입니다.
+## notify 를 사용하여 nginx 서비스를 재시작하는 handler를 호출합니다.
+
+## command 모듈을 사용하여 nginx -t 명령어를 수행합니다.
+## 항상 changed는 보고 하지 않습니다.
+
+## firewalld 모듈을 사용하여 정책을 추가합니다.
+## {{ wordpress_port }}/tcp 포트를 추가하고 permanent 옵션을 사용합니다.
+## notify를 작성하여 2번 항목의 firewalld 재기동하는 핸들러를 호출하세요

@@ -1,0 +1,41 @@
+---
+- name: package repository
+  yum_repository:
+    description: repository
+    name: repo
+    file: external_repos
+    baseurl: http://ftp.daum.net/centos/7/os/$basearch/
+    gpgcheck: no
+    enabled: yes
+
+- name: Install package.
+  yum:
+     name: http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+     state: present
+  
+- name: Remi 리포지터리 설치
+  yum:
+    name: https://rpms.remirepo.net/enterprise/remi-release-7.rpm
+
+- name: php-fpm과 관련 모듈 설치
+  yum:
+    name: "{{ item }}"
+    enablerepo: "remi-php{{ php_fpm_php_version|replace('.', '') }}"
+  with_items:
+    - libcrypto.so.10
+    - php-fpm
+    - php-devel
+    - php-enchant
+    - php-mbstring
+    - php-process
+    - php-xml
+    - php-gd
+    - "{{ php_fpm_additional_packages }}"
+  notify:
+    - PHP-FPM 재시작
+
+- name: PHP-FPM 재시작
+  service:
+    name: php-fpm
+    state: started
+    enabled: true

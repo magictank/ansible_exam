@@ -1,0 +1,29 @@
+## 1. default 변수로 다음을 설정하세요
+
+## nginx_user: nginx
+## nginx_group: nginx
+## nginx_config_dir: /etc/nginx/conf.d
+## nginx_default_port: 80
+
+## 2. handler를 작성하세요
+## service 모듈로 nginx를 reload 하세요
+
+## 3. tasks에 다음 작업을 작성하세요
+
+## 3-1. 레포지토리와 필수 패키지를 설치하세요
+## yum 모듈로 libselinux-python , epel-release 를 설치하세요
+
+## 3-2 yum 모듈로 nginx를 설치하세요
+
+## 3-3 service 모듈로 nginx 를 활성화하세요
+
+## 3-4 template 모듈로 j2파일을 복사하세요
+## 저장할 destination은 /etc/nginx/nginx.conf 입니다.
+## validate 체크 옵션은 nginx -t -c %s 입니다.
+## notify 를 사용하세요 2번 항목의 핸들로를 호출하세요
+
+## 3-5 group모듈로 ginx 그룹을 생성하세요
+
+## 3-6 user모듈로 nginx 사용자를 생성하여 그룹으로 추가하세요
+## 로그인을 하지 않는 사용자 입니다.
+## system 사용자로 만듭니다.
